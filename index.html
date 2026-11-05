@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="id" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lia Kartika | Full Stack Web Developer, UI/UX Designer & Google Student Ambassador</title>
+    <meta name="description" content="Portofolio 3D Interaktif Lia Kartika - Mahasiswa S1 Sistem Informasi Universitas Subang (IPK 3.90/4.00), Full Stack Web Developer, UI/UX Designer, dan Google Student Ambassador.">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                        },
+                        accent: {
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-12px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.1); }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #3b82f6, #8b5cf6); border-radius: 9999px; }
+
+        /* 3D Canvas Container */
+        #three-canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+            transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+        }
+        .dark .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+        }
+        .dark .glass-nav {
+            background: rgba(9, 14, 28, 0.75);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* 3D Perspective Tilt Card */
+        .tilt-card {
+            transform-style: preserve-3d;
+            will-change: transform;
+            transition: transform 0.15s cubic-bezier(0.03, 0.98, 0.52, 0.99), box-shadow 0.3s ease;
+        }
+        .tilt-inner {
+            transform: translateZ(28px);
+        }
+        .tilt-badge {
+            transform: translateZ(45px);
+        }
+
+        /* Gradient Text */
+        .text-gradient {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-[#070b16] dark:text-slate-100 transition-colors duration-500 antialiased selection:bg-brand-500 selection:text-white overflow-x-hidden">
+
+    <!-- Three.js Interactive 3D Background -->
+    <div id="three-canvas-container"></div>
+
+    <!-- Ambient Glow Blobs -->
+    <div class="fixed top-[-10%] left-[-10%] w-96 h-96 bg-brand-500/20 dark:bg-brand-500/15 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+    <div class="fixed bottom-[-10%] right-[-10%] w-96 h-96 bg-accent-500/20 dark:bg-accent-500/15 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+
+    <!-- Navigation Bar -->
+    <header class="fixed top-0 left-0 right-0 z-40 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="#home" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-accent-500 flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-brand-500/30 group-hover:scale-105 transition">
+                    LK
+                </div>
+                <div>
+                    <span class="font-bold text-lg tracking-tight block leading-none">Lia Kartika</span>
+                    <span class="text-xs font-mono text-brand-600 dark:text-brand-400">S.Kom Candidate • 3.90 GPA</span>
+                </div>
+            </a>
+
+            <!-- Desktop Menu -->
+            <nav class="hidden md:flex items-center gap-1 lg:gap-2 text-sm font-medium">
+                <a href="#home" class="px-3 py-2 rounded-lg hover:bg-brand-500/10 hover:text-brand-500 transition" data-i18n="nav_home">Beranda</a>
+                <a href="#experience" class="px-3 py-2 rounded-lg hover:bg-brand-500/10 hover:text-brand-500 transition" data-i18n="nav_exp">Peran & GSA</a>
+                <a href="#skills" class="px-3 py-2 rounded-lg hover:bg-brand-500/10 hover:text-brand-500 transition" data-i18n="nav_skills">Tech Stack</a>
+                <a href="#projects" class="px-3 py-2 rounded-lg hover:bg-brand-500/10 hover:text-brand-500 transition" data-i18n="nav_projects">Proyek</a>
+                <a href="#certifications" class="px-3 py-2 rounded-lg hover:bg-brand-500/10 hover:text-brand-500 transition" data-i18n="nav_certs">Sertifikasi</a>
+                <a href="#contact" class="px-3 py-2 rounded-lg hover:bg-brand-500/10 hover:text-brand-500 transition" data-i18n="nav_contact">Kontak</a>
+            </nav>
+
+            <!-- Action Controls: Translator + Dark/Light Mode + Mobile Menu -->
+            <div class="flex items-center gap-2.5">
+                <!-- Instant Bilingual Toggle (ID / EN) -->
+                <button id="langToggleBtn" onclick="toggleLanguage()" class="glass-panel px-3.5 py-2 rounded-xl text-xs font-bold tracking-wider flex items-center gap-2 hover:border-brand-500 transition cursor-pointer" title="Switch Language (ID / EN)">
+                    <i class="fa-solid fa-earth-asia text-brand-500"></i>
+                    <span id="langLabel">ID</span>
+                    <span class="text-slate-400 font-normal">|</span>
+                    <span id="langSubLabel" class="text-slate-400">EN</span>
+                </button>
+
+                <!-- Theme Toggle (Dark / Light) -->
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="glass-panel w-10 h-10 rounded-xl flex items-center justify-center hover:border-brand-500 transition cursor-pointer" title="Toggle Dark/Light Mode">
+                    <i class="fa-solid fa-sun text-amber-400 hidden dark:inline-block text-base"></i>
+                    <i class="fa-solid fa-moon text-slate-700 dark:hidden text-base"></i>
+                </button>
+
+                <!-- Mobile Hamburger -->
+                <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="md:hidden glass-panel w-10 h-10 rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-bars text-base"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobileMenu" class="hidden md:hidden glass-nav px-4 pt-2 pb-5 space-y-2 border-t border-slate-200/50 dark:border-slate-800">
+            <a href="#home" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-brand-500/10 font-medium" data-i18n="nav_home">Beranda</a>
+            <a href="#experience" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-brand-500/10 font-medium" data-i18n="nav_exp">Peran & GSA</a>
+            <a href="#skills" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-brand-500/10 font-medium" data-i18n="nav_skills">Tech Stack</a>
+            <a href="#projects" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-brand-500/10 font-medium" data-i18n="nav_projects">Proyek</a>
+            <a href="#certifications" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-brand-500/10 font-medium" data-i18n="nav_certs">Sertifikasi</a>
+            <a href="#contact" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-brand-500/10 font-medium" data-i18n="nav_contact">Kontak</a>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="pt-28 pb-20">
+
+        <!-- ================= HERO SECTION ================= -->
+        <section id="home" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Left Column: Bio & Call to Actions -->
+                <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full glass-panel text-xs font-semibold text-brand-600 dark:text-brand-400">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                        <span data-i18n="hero_badge">Mahasiswa S1 Sistem Informasi Semester 7 • Universitas Subang</span>
+                    </div>
+
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15]">
+                        <span data-i18n="hero_greeting">Halo, Saya</span> <br/>
+                        <span class="text-gradient">Lia Kartika</span>
+                    </h1>
+
+                    <!-- Role Pills -->
+                    <div class="flex flex-wrap justify-center lg:justify-start gap-2.5">
+                        <span class="px-3.5 py-1.5 rounded-lg bg-brand-500/10 border border-brand-500/30 text-brand-600 dark:text-brand-400 text-xs sm:text-sm font-semibold flex items-center gap-2">
+                            <i class="fa-solid fa-code"></i> Full Stack Web Developer
+                        </span>
+                        <span class="px-3.5 py-1.5 rounded-lg bg-accent-500/10 border border-accent-500/30 text-accent-600 dark:text-accent-400 text-xs sm:text-sm font-semibold flex items-center gap-2">
+                            <i class="fa-solid fa-pen-ruler"></i> UI/UX Designer
+                        </span>
+                        <span class="px-3.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs sm:text-sm font-semibold flex items-center gap-2">
+                            <i class="fa-brands fa-google"></i> Google Student Ambassador
+                        </span>
+                    </div>
+
+                    <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0" data-i18n="hero_bio">
+                        Mahasiswa S1 Sistem Informasi Semester 7 di Universitas Subang dengan raihan IPK 3.90/4.00. Berfokus pada rekayasa perangkat lunak Full Stack (Laravel, FastAPI, Kotlin Jetpack Compose), perancangan antarmuka pengguna berpusat pada manusia (Figma), serta aktif menggerakkan ekosistem teknologi kampus sebagai Google Student Ambassador.
+                    </p>
+
+                    <!-- Quick Highlight Stats -->
+                    <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto lg:mx-0 pt-2">
+                        <div class="glass-panel p-3.5 rounded-2xl text-center">
+                            <div class="text-2xl sm:text-3xl font-extrabold text-brand-500">3.90<span class="text-sm text-slate-400">/4.00</span></div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" data-i18n="stat_gpa">IPK Kumulatif</div>
+                        </div>
+                        <div class="glass-panel p-3.5 rounded-2xl text-center">
+                            <div class="text-2xl sm:text-3xl font-extrabold text-accent-500">5+</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" data-i18n="stat_projects">Proyek Utama</div>
+                        </div>
+                        <div class="glass-panel p-3.5 rounded-2xl text-center">
+                            <div class="text-2xl sm:text-3xl font-extrabold text-emerald-500">4+</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" data-i18n="stat_certs">Sertifikasi Unggul</div>
+                        </div>
+                    </div>
+
+                    <!-- CTA Buttons -->
+                    <div class="flex flex-wrap justify-center lg:justify-start gap-4 pt-2">
+                        <a href="#projects" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-brand-600 to-accent-600 text-white font-semibold shadow-lg shadow-brand-500/30 hover:shadow-brand-500/50 hover:-translate-y-0.5 transition flex items-center gap-2">
+                            <i class="fa-solid fa-rocket"></i>
+                            <span data-i18n="cta_explore">Jelajahi Proyek</span>
+                        </a>
+                        <a href="https://wa.me/6283872649155" target="_blank" rel="noopener" class="px-6 py-3.5 rounded-xl glass-panel font-semibold hover:border-emerald-500 hover:text-emerald-500 transition flex items-center gap-2">
+                            <i class="fa-brands fa-whatsapp text-emerald-500 text-lg"></i>
+                            <span data-i18n="cta_contact">Hubungi via WhatsApp</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right Column: 3D Tilt Profile Card + Smart Asset Loader -->
+                <div class="lg:col-span-5 flex justify-center">
+                    <div class="tilt-card glass-panel p-6 rounded-3xl w-full max-w-md relative group">
+                        <!-- Floating Academic Badge -->
+                        <div class="tilt-badge absolute -top-4 -right-4 z-20 px-4 py-2 rounded-2xl bg-gradient-to-r from-brand-600 to-accent-600 text-white text-xs font-bold shadow-xl flex items-center gap-2">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                            <span>IPK 3.90 / 4.00</span>
+                        </div>
+
+                        <div class="tilt-inner space-y-4">
+                            <!-- Profile Image Container -->
+                            <div class="relative rounded-2xl overflow-hidden aspect-[4/4.3] bg-gradient-to-b from-brand-500/20 to-accent-500/20 border border-white/20">
+                                <img id="profileImagePreview" 
+                                     src="Lia Kartika.png" 
+                                     onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80';" 
+                                     alt="Lia Kartika" 
+                                     class="w-full h-full object-cover object-top transition duration-500 group-hover:scale-105">
+                                
+                                <!-- Overlay Smart Asset Upload Button -->
+                                <div class="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent flex items-center justify-between gap-2">
+                                    <div class="text-left">
+                                        <span class="text-[11px] font-mono text-emerald-400 block">● Lia Kartika.png</span>
+                                        <span class="text-xs text-slate-200 font-medium" data-i18n="asset_profile_hint">Aset Pintar: Klik untuk uji/ganti foto</span>
+                                    </div>
+                                    <label class="cursor-pointer px-3 py-1.5 rounded-lg bg-white/20 hover:bg-brand-500 text-white text-xs font-semibold backdrop-blur-md transition flex items-center gap-1.5 shrink-0">
+                                        <i class="fa-solid fa-camera"></i>
+                                        <span data-i18n="btn_upload_photo">Unggah</span>
+                                        <input type="file" accept="image/*" class="hidden" onchange="handleSmartAssetUpload(event, 'profileImagePreview', 'profileStatusBadge')">
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Card Footer Info -->
+                            <div class="flex items-center justify-between pt-1">
+                                <div>
+                                    <h2 class="font-bold text-lg">Lia Kartika</h2>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="profile_card_sub">Sistem Informasi • Universitas Subang</p>
+                                </div>
+                                <span id="profileStatusBadge" class="px-2.5 py-1 rounded-full text-[11px] font-mono bg-brand-500/15 text-brand-500 font-semibold">
+                                    Ready
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= EXPERIENCE, EDUCATION & GSA POSTER SECTION ================= -->
+        <section id="experience" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="text-xs font-mono uppercase tracking-widest text-brand-500 font-semibold" data-i18n="exp_eyebrow">DEDIKASI & KEPEMIMPINAN</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold mt-2" data-i18n="exp_title">Pendidikan, Fokus Keahlian & Google Student Ambassador</h2>
+                <p class="text-slate-600 dark:text-slate-400 mt-3 text-sm sm:text-base" data-i18n="exp_subtitle">
+                    Perpaduan prestasi akademik, keahlian rekayasa perangkat lunak, serta kontribusi komunitas teknologi bersama Google.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                
+                <!-- Left: 3 Role & Academic Tilt Cards -->
+                <div class="lg:col-span-7 flex flex-col justify-between gap-6">
+                    
+                    <!-- Card 1: Academic Profile -->
+                    <div class="tilt-card glass-panel p-6 rounded-2xl">
+                        <div class="tilt-inner flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-brand-500/15 text-brand-500 flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-building-columns"></i>
+                            </div>
+                            <div class="space-y-1.5">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h3 class="text-lg font-bold" data-i18n="edu_card_title">S1 Sistem Informasi — Universitas Subang</h3>
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-500" data-i18n="edu_sem_badge">Semester 7 • IPK 3.90/4.00</span>
+                                </div>
+                                <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed" data-i18n="edu_card_desc">
+                                    Mendalami analisis dan perancangan sistem informasi enterprise, rekayasa perangkat lunak berbasis web & mobile, kecerdasan buatan (Computer Vision), serta manajemen basis data relasional & NoSQL.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Full Stack & UI/UX Focus -->
+                    <div class="tilt-card glass-panel p-6 rounded-2xl">
+                        <div class="tilt-inner flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-accent-500/15 text-accent-500 flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-layer-group"></i>
+                            </div>
+                            <div class="space-y-1.5">
+                                <h3 class="text-lg font-bold" data-i18n="role_fs_title">Full Stack Web Developer & UI/UX Designer</h3>
+                                <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed" data-i18n="role_fs_desc">
+                                    Merancang solusi digital end-to-end mulai dari User Research & High-Fidelity Prototyping di Figma, hingga pengembangan produksi menggunakan Laravel, Python FastAPI, OpenCV, Leaflet.js, dan Kotlin Jetpack Compose.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Google Student Ambassador Role -->
+                    <div class="tilt-card glass-panel p-6 rounded-2xl border-l-4 border-l-amber-500">
+                        <div class="tilt-inner flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-brands fa-google"></i>
+                            </div>
+                            <div class="space-y-1.5">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h3 class="text-lg font-bold">Google Student Ambassador (GSA)</h3>
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-500">Campus Representative</span>
+                                </div>
+                                <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed" data-i18n="role_gsa_desc">
+                                    Menjadi jembatan kolaborasi inovasi Google di lingkungan kampus, menginisiasi literasi teknologi, berbagi wawasan seputar pengembangan produk digital, dan menginspirasi mahasiswa teknologi.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right: Smart Asset GSA Poster Showcase -->
+                <div class="lg:col-span-5">
+                    <div class="tilt-card glass-panel p-6 rounded-3xl h-full flex flex-col justify-between">
+                        <div class="tilt-inner space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                                    <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                                    <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                                    <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                    <span class="text-xs font-bold ml-1">Google Student Ambassador</span>
+                                </div>
+                                <span id="gsaStatusBadge" class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500 font-semibold">
+                                    Poster Asset
+                                </span>
+                            </div>
+
+                            <!-- GSA Poster Image Container -->
+                            <div class="relative rounded-2xl overflow-hidden aspect-[4/4.2] bg-slate-900 border border-white/15 group">
+                                <img id="gsaPosterPreview" 
+                                     src="gsaid26b2-73557e18-2225-44b7-9888-7532fff384e3.jpg" 
+                                     onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=900&q=80';" 
+                                     alt="Google Student Ambassador Poster - Lia Kartika" 
+                                     class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+
+                                <!-- Smart Upload / Preview Control Bar -->
+                                <div class="absolute inset-x-0 bottom-0 p-3.5 bg-gradient-to-t from-slate-950/95 via-slate-950/70 to-transparent flex items-center justify-between gap-2">
+                                    <div class="truncate">
+                                        <span class="text-[10px] font-mono text-amber-400 block truncate">gsaid26b2-73557e18-2225-44b7-9888-7532fff384e3.jpg</span>
+                                        <span class="text-xs text-white font-medium" data-i18n="asset_gsa_hint">Uji / Pratinjau Poster GSA di Browser</span>
+                                    </div>
+                                    <label class="cursor-pointer px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+                                        <i class="fa-solid fa-upload"></i>
+                                        <span data-i18n="btn_upload_poster">Pilih File</span>
+                                        <input type="file" accept="image/*" class="hidden" onchange="handleSmartAssetUpload(event, 'gsaPosterPreview', 'gsaStatusBadge')">
+                                    </label>
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-slate-500 dark:text-slate-400 text-center" data-i18n="gsa_footer_note">
+                                Otomatis memuat file lokal jika berada di direktori yang sama, atau gunakan tombol di atas untuk pratinjau instan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= TECH STACK SECTION ================= -->
+        <section id="skills" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="text-xs font-mono uppercase tracking-widest text-brand-500 font-semibold" data-i18n="skills_eyebrow">ARSENAL TEKNOLOGI</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold mt-2" data-i18n="skills_title">Tech Stack & Peralatan Pengembangan</h2>
+                <p class="text-slate-600 dark:text-slate-400 mt-3 text-sm sm:text-base" data-i18n="skills_subtitle">
+                    16 teknologi inti yang saya gunakan untuk membangun aplikasi web modern, aplikasi Android native, sistem visi komputer, dan desain antarmuka.
+                </p>
+            </div>
+
+            <!-- 16 Complete Tech Stack Items Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-orange-500/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-brands fa-html5 text-3xl text-orange-500 mb-2"></i>
+                        <h3 class="text-xs font-bold">HTML5</h3>
+                        <span class="text-[10px] text-slate-400">Frontend</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-blue-500/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-brands fa-css3-alt text-3xl text-blue-500 mb-2"></i>
+                        <h3 class="text-xs font-bold">CSS3</h3>
+                        <span class="text-[10px] text-slate-400">Styling</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-indigo-400/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-brands fa-php text-3xl text-indigo-400 mb-2"></i>
+                        <h3 class="text-xs font-bold">PHP</h3>
+                        <span class="text-[10px] text-slate-400">Backend</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-yellow-400/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-brands fa-js text-3xl text-yellow-400 mb-2"></i>
+                        <h3 class="text-xs font-bold">JavaScript</h3>
+                        <span class="text-[10px] text-slate-400">ES6+</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-sky-400/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-brands fa-python text-3xl text-sky-400 mb-2"></i>
+                        <h3 class="text-xs font-bold">Python</h3>
+                        <span class="text-[10px] text-slate-400">AI & API</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-purple-500/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-brands fa-android text-3xl text-purple-500 mb-2"></i>
+                        <h3 class="text-xs font-bold">Kotlin</h3>
+                        <span class="text-[10px] text-slate-400">Android</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-red-500/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-brands fa-laravel text-3xl text-red-500 mb-2"></i>
+                        <h3 class="text-xs font-bold">Laravel</h3>
+                        <span class="text-[10px] text-slate-400">Full Stack</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-emerald-400/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-solid fa-mobile-screen-button text-3xl text-emerald-400 mb-2"></i>
+                        <h3 class="text-xs font-bold">Jetpack Compose</h3>
+                        <span class="text-[10px] text-slate-400">Modern UI</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-teal-400/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-solid fa-bolt text-3xl text-teal-400 mb-2"></i>
+                        <h3 class="text-xs font-bold">FastAPI</h3>
+                        <span class="text-[10px] text-slate-400">Microservice</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-violet-500/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-brands fa-bootstrap text-3xl text-violet-500 mb-2"></i>
+                        <h3 class="text-xs font-bold">Bootstrap</h3>
+                        <span class="text-[10px] text-slate-400">UI Framework</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-cyan-400/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-solid fa-wind text-3xl text-cyan-400 mb-2"></i>
+                        <h3 class="text-xs font-bold">Tailwind CSS</h3>
+                        <span class="text-[10px] text-slate-400">Utility CSS</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-rose-500/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-solid fa-eye text-3xl text-rose-500 mb-2"></i>
+                        <h3 class="text-xs font-bold">OpenCV</h3>
+                        <span class="text-[10px] text-slate-400">Face Recog</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-lime-500/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-solid fa-map-location-dot text-3xl text-lime-500 mb-2"></i>
+                        <h3 class="text-xs font-bold">Leaflet.js</h3>
+                        <span class="text-[10px] text-slate-400">Web GIS</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-sky-600/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-solid fa-database text-3xl text-sky-500 mb-2"></i>
+                        <h3 class="text-xs font-bold">MySQL</h3>
+                        <span class="text-[10px] text-slate-400">Relational DB</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-amber-500/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-solid fa-fire text-3xl text-amber-500 mb-2"></i>
+                        <h3 class="text-xs font-bold">Firestore</h3>
+                        <span class="text-[10px] text-slate-400">Firebase DB</span>
+                    </div>
+                </div>
+                <div class="tilt-card glass-panel p-4 rounded-2xl text-center hover:border-pink-500/50 transition">
+                    <div class="tilt-inner">
+                        <i class="fa-brands fa-figma text-3xl text-pink-500 mb-2"></i>
+                        <h3 class="text-xs font-bold">Figma</h3>
+                        <span class="text-[10px] text-slate-400">UI/UX Design</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SHOWCASE 5 PROYEK UTAMA + FILTER & MODAL ================= -->
+        <section id="projects" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+                <div>
+                    <span class="text-xs font-mono uppercase tracking-widest text-brand-500 font-semibold" data-i18n="proj_eyebrow">KARYA UNGGULAN</span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold mt-2" data-i18n="proj_title">Showcase 5 Proyek Utama</h2>
+                    <p class="text-slate-600 dark:text-slate-400 mt-2 text-sm sm:text-base" data-i18n="proj_subtitle">
+                        Filter berdasarkan kategori atau klik kartu proyek untuk membaca arsitektur dan fitur lengkapnya.
+                    </p>
+                </div>
+
+                <!-- Interactive Filter Buttons -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="filterProjects('all')" data-filter="all" class="proj-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white shadow-md shadow-brand-500/30 transition" data-i18n="filter_all">Semua (5)</button>
+                    <button onclick="filterProjects('web')" data-filter="web" class="proj-filter-btn px-4 py-2 rounded-xl text-xs font-bold glass-panel hover:border-brand-500 transition" data-i18n="filter_web">Full Stack & AI (3)</button>
+                    <button onclick="filterProjects('uiux')" data-filter="uiux" class="proj-filter-btn px-4 py-2 rounded-xl text-xs font-bold glass-panel hover:border-brand-500 transition" data-i18n="filter_uiux">UI/UX Design (1)</button>
+                    <button onclick="filterProjects('mobile')" data-filter="mobile" class="proj-filter-btn px-4 py-2 rounded-xl text-xs font-bold glass-panel hover:border-brand-500 transition" data-i18n="filter_mobile">Android Kotlin (1)</button>
+                </div>
+            </div>
+
+            <!-- Projects Grid -->
+            <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+
+                <!-- Project 1: SIMOWARJO -->
+                <article data-category="web" class="project-card tilt-card glass-panel rounded-3xl overflow-hidden flex flex-col justify-between group cursor-pointer" onclick="openProjectModal('simowarjo')">
+                    <div>
+                        <div class="p-6 pb-0">
+                            <div class="w-full h-44 rounded-2xl bg-gradient-to-br from-brand-600/20 via-indigo-600/20 to-emerald-500/20 border border-brand-500/20 flex flex-col items-center justify-center relative overflow-hidden">
+                                <i class="fa-solid fa-face-viewfinder text-5xl text-brand-500 group-hover:scale-110 transition duration-300"></i>
+                                <span class="mt-2 text-xs font-mono text-brand-400">ERP + Face Recognition + GIS</span>
+                                <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-brand-600 text-white">Full Stack & AI</span>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-3">
+                            <h3 class="text-xl font-extrabold group-hover:text-brand-500 transition">SIMOWARJO</h3>
+                            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-3" data-i18n="p1_short">
+                                Sistem ERP Restoran terintegrasi dengan presensi pengenalan wajah (OpenCV Face Recognition) via FastAPI dan validasi geolokasi Leaflet.js berbasis Laravel.
+                            </p>
+                            <div class="flex flex-wrap gap-1.5 pt-1">
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-brand-500/10 text-brand-500">Laravel</span>
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-teal-500/10 text-teal-500">FastAPI</span>
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-rose-500/10 text-rose-500">OpenCV</span>
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-lime-500/10 text-lime-500">Leaflet.js</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 pt-2 flex items-center justify-between border-t border-slate-200/40 dark:border-slate-800/60">
+                        <span class="text-xs font-semibold text-brand-500" data-i18n="btn_view_detail">Lihat Detail Arsitektur</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-xs text-brand-500 group-hover:translate-x-1 transition"></i>
+                    </div>
+                </article>
+
+                <!-- Project 2: CODINGTECH -->
+                <article data-category="web" class="project-card tilt-card glass-panel rounded-3xl overflow-hidden flex flex-col justify-between group cursor-pointer" onclick="openProjectModal('codingtech')">
+                    <div>
+                        <div class="p-6 pb-0">
+                            <div class="w-full h-44 rounded-2xl bg-gradient-to-br from-accent-600/20 via-purple-600/20 to-pink-500/20 border border-accent-500/20 flex flex-col items-center justify-center relative overflow-hidden">
+                                <i class="fa-solid fa-laptop-code text-5xl text-accent-500 group-hover:scale-110 transition duration-300"></i>
+                                <span class="mt-2 text-xs font-mono text-accent-400">E-Learning & Faculty Dashboard</span>
+                                <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-accent-600 text-white">Web Platform</span>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-3">
+                            <h3 class="text-xl font-extrabold group-hover:text-accent-500 transition">CODINGTECH</h3>
+                            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-3" data-i18n="p2_short">
+                                Platform E-Learning interaktif dan Dashboard Manajemen Fakultas Ilmu Komputer untuk pengelolaan kelas pemrograman, modul, dan evaluasi mahasiswa.
+                            </p>
+                            <div class="flex flex-wrap gap-1.5 pt-1">
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-indigo-500/10 text-indigo-400">PHP / Laravel</span>
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-cyan-500/10 text-cyan-400">Tailwind CSS</span>
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-sky-500/10 text-sky-400">MySQL</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 pt-2 flex items-center justify-between border-t border-slate-200/40 dark:border-slate-800/60">
+                        <span class="text-xs font-semibold text-accent-500" data-i18n="btn_view_detail">Lihat Detail Arsitektur</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-xs text-accent-500 group-hover:translate-x-1 transition"></i>
+                    </div>
+                </article>
+
+                <!-- Project 3: Food Discovery Mobile UI/UX -->
+                <article data-category="uiux" class="project-card tilt-card glass-panel rounded-3xl overflow-hidden flex flex-col justify-between group cursor-pointer" onclick="openProjectModal('fooduiux')">
+                    <div>
+                        <div class="p-6 pb-0">
+                            <div class="w-full h-44 rounded-2xl bg-gradient-to-br from-pink-500/20 via-rose-500/20 to-amber-500/20 border border-pink-500/20 flex flex-col items-center justify-center relative overflow-hidden">
+                                <i class="fa-brands fa-figma text-5xl text-pink-500 group-hover:scale-110 transition duration-300"></i>
+                                <span class="mt-2 text-xs font-mono text-pink-400">High-Fidelity Figma Prototype</span>
+                                <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-pink-600 text-white">UI/UX Design</span>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-3">
+                            <h3 class="text-xl font-extrabold group-hover:text-pink-500 transition">Food Discovery Mobile UI/UX</h3>
+                            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-3" data-i18n="p3_short">
+                                Desain UI/UX aplikasi mobile eksplorasi kuliner berstandar High-Fidelity di Figma dari Bootcamp MySkill, mencakup Design System, User Flow, dan Prototyping interaktif.
+                            </p>
+                            <div class="flex flex-wrap gap-1.5 pt-1">
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-pink-500/10 text-pink-500">Figma</span>
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-amber-500/10 text-amber-500">UI/UX Research</span>
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-purple-500/10 text-purple-400">Design System</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 pt-2 flex items-center justify-between border-t border-slate-200/40 dark:border-slate-800/60">
+                        <span class="text-xs font-semibold text-pink-500" data-i18n="btn_view_detail">Lihat Detail Arsitektur</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-xs text-pink-500 group-hover:translate-x-1 transition"></i>
+                    </div>
+                </article>
+
+                <!-- Project 4: Aplikasi Android Pengelolaan Keuangan -->
+                <article data-category="mobile" class="project-card tilt-card glass-panel rounded-3xl overflow-hidden flex flex-col justify-between group cursor-pointer" onclick="openProjectModal('financeapp')">
+                    <div>
+                        <div class="p-6 pb-0">
+                            <div class="w-full h-44 rounded-2xl bg-gradient-to-br from-emerald-500/20 via-teal-500/20 to-cyan-500/20 border border-emerald-500/20 flex flex-col items-center justify-center relative overflow-hidden">
+                                <i class="fa-brands fa-android text-5xl text-emerald-500 group-hover:scale-110 transition duration-300"></i>
+                                <span class="mt-2 text-xs font-mono text-emerald-400">Kotlin • Jetpack Compose • MVVM</span>
+                                <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-600 text-white">Android Native</span>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-3">
+                            <h3 class="text-xl font-extrabold group-hover:text-emerald-500 transition" data-i18n="p4_title">Aplikasi Android Pengelolaan Keuangan</h3>
+                            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-3" data-i18n="p4_short">
+                                Aplikasi Android native pencatatan arus kas harian dan anggaran dengan bahasa Kotlin, UI deklaratif Jetpack Compose, arsitektur MVVM, dan sinkronisasi real-time Firebase Firestore.
+                            </p>
+                            <div class="flex flex-wrap gap-1.5 pt-1">
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-purple-500/10 text-purple-400">Kotlin</span>
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-emerald-500/10 text-emerald-500">Jetpack Compose</span>
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-sky-500/10 text-sky-400">MVVM</span>
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-amber-500/10 text-amber-500">Firestore</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 pt-2 flex items-center justify-between border-t border-slate-200/40 dark:border-slate-800/60">
+                        <span class="text-xs font-semibold text-emerald-500" data-i18n="btn_view_detail">Lihat Detail Arsitektur</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-xs text-emerald-500 group-hover:translate-x-1 transition"></i>
+                    </div>
+                </article>
+
+                <!-- Project 5: Website Perpustakaan SMAN 2 Subang -->
+                <article data-category="web" class="project-card tilt-card glass-panel rounded-3xl overflow-hidden flex flex-col justify-between group cursor-pointer" onclick="openProjectModal('libraryweb')">
+                    <div>
+                        <div class="p-6 pb-0">
+                            <div class="w-full h-44 rounded-2xl bg-gradient-to-br from-amber-500/20 via-orange-500/20 to-yellow-500/20 border border-amber-500/20 flex flex-col items-center justify-center relative overflow-hidden">
+                                <i class="fa-solid fa-book-open-reader text-5xl text-amber-500 group-hover:scale-110 transition duration-300"></i>
+                                <span class="mt-2 text-xs font-mono text-amber-400">Digital Library Management</span>
+                                <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-600 text-white">Information System</span>
+                            </div>
+                        </div>
+                        <div class="p-6 space-y-3">
+                            <h3 class="text-xl font-extrabold group-hover:text-amber-500 transition" data-i18n="p5_title">Website Perpustakaan SMAN 2 Subang</h3>
+                            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-3" data-i18n="p5_short">
+                                Sistem informasi digitalisasi perpustakaan sekolah untuk katalog buku online (OPAC), sirkulasi peminjaman/pengembalian otomatis, dan pelaporan administrasi pustakawan.
+                            </p>
+                            <div class="flex flex-wrap gap-1.5 pt-1">
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-indigo-500/10 text-indigo-400">PHP</span>
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-violet-500/10 text-violet-400">Bootstrap</span>
+                                <span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-sky-500/10 text-sky-400">MySQL</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 pt-2 flex items-center justify-between border-t border-slate-200/40 dark:border-slate-800/60">
+                        <span class="text-xs font-semibold text-amber-500" data-i18n="btn_view_detail">Lihat Detail Arsitektur</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-xs text-amber-500 group-hover:translate-x-1 transition"></i>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- ================= CERTIFICATIONS SECTION ================= -->
+        <section id="certifications" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="text-xs font-mono uppercase tracking-widest text-brand-500 font-semibold" data-i18n="cert_eyebrow">LISENSI & KOMPETENSI</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold mt-2" data-i18n="cert_title">Sertifikasi Profesional</h2>
+                <p class="text-slate-600 dark:text-slate-400 mt-3 text-sm sm:text-base" data-i18n="cert_subtitle">
+                    Validasi kompetensi di bidang UI/UX Research & Design serta Full Stack Web Development.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Cert 1 -->
+                <div class="tilt-card glass-panel p-6 rounded-2xl flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-xs font-mono text-amber-500 font-bold">2025 • EXCELLENT</span>
+                        </div>
+                        <h3 class="text-lg font-bold">UI/UX Design — Special Skill</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300" data-i18n="cert_1_desc">
+                            Meraih predikat tertinggi (Excellent) dalam penguasaan prinsip desain antarmuka pengguna, penyusunan wireframe, dan evaluasi heuristik.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Cert 2 -->
+                <div class="tilt-card glass-panel p-6 rounded-2xl flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-pink-500/15 text-pink-500 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-certificate"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-xs font-mono text-pink-500 font-bold">2025 • MYSKILL BY RUANG GURU</span>
+                        <h3 class="text-lg font-bold">UI/UX Research & Design Bootcamp</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300" data-i18n="cert_2_desc">
+                            Menyelesaikan kurikulum intensif Design Thinking, User Persona, Information Architecture, Design System, dan Usability Testing di Figma.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Cert 3 -->
+                <div class="tilt-card glass-panel p-6 rounded-2xl flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-brand-500/15 text-brand-500 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-laptop-file"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-xs font-mono text-brand-500 font-bold">2024 • JABAR FUTURE ACADEMY</span>
+                        <h3 class="text-lg font-bold">Full Stack Developer</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300" data-i18n="cert_3_desc">
+                            Program akselerasi talenta digital Jawa Barat mencakup pengembangan aplikasi web modern bagian Frontend, Backend, RESTful API, dan deployment.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Cert 4 -->
+                <div class="tilt-card glass-panel p-6 rounded-2xl flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-brands fa-js"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-xs font-mono text-emerald-500 font-bold">2023 • DICODING INDONESIA</span>
+                        <h3 class="text-lg font-bold" data-i18n="cert_4_title">Belajar Dasar Pemrograman JavaScript</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300" data-i18n="cert_4_desc">
+                            Kompetensi fundamental algoritma, struktur data, Object-Oriented Programming (OOP), Functional Programming, dan asynchronous JavaScript.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= INTERACTIVE CONTACT SECTION ================= -->
+        <section id="contact" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+            <div class="glass-panel rounded-3xl p-8 sm:p-12 relative overflow-hidden">
+                <div class="text-center max-w-2xl mx-auto mb-10">
+                    <span class="text-xs font-mono uppercase tracking-widest text-brand-500 font-semibold" data-i18n="contact_eyebrow">KOLABORASI & REKRUTMEN</span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold mt-2" data-i18n="contact_title">Mari Terhubung & Berdiskusi</h2>
+                    <p class="text-slate-600 dark:text-slate-400 mt-3 text-sm sm:text-base" data-i18n="contact_subtitle">
+                        Terbuka untuk peluang magang, kolaborasi proyek Full Stack Web / Mobile, desain UI/UX, maupun kegiatan komunitas Google Student Ambassador.
+                    </p>
+                </div>
+
+                <!-- 4 Direct Interactive Contact Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    
+                    <!-- WhatsApp -->
+                    <a href="https://wa.me/6283872649155" target="_blank" rel="noopener" class="tilt-card glass-panel p-5 rounded-2xl hover:border-emerald-500 transition group block">
+                        <div class="tilt-inner space-y-3">
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs text-slate-400 block">WhatsApp</span>
+                                <span class="font-bold text-sm sm:text-base">+62 838 7264 9155</span>
+                            </div>
+                            <span class="text-xs font-semibold text-emerald-500 flex items-center gap-1.5">
+                                <span data-i18n="contact_wa_cta">Kirim Pesan Langsung</span>
+                                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </span>
+                        </div>
+                    </a>
+
+                    <!-- Email -->
+                    <a href="mailto:liakartikanw@gmail.com" class="tilt-card glass-panel p-5 rounded-2xl hover:border-rose-500 transition group block">
+                        <div class="tilt-inner space-y-3">
+                            <div class="w-12 h-12 rounded-2xl bg-rose-500/15 text-rose-500 flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs text-slate-400 block">Email</span>
+                                <span class="font-bold text-sm sm:text-base break-all">liakartikanw@gmail.com</span>
+                            </div>
+                            <span class="text-xs font-semibold text-rose-500 flex items-center gap-1.5">
+                                <span data-i18n="contact_email_cta">Kirim Surel Resmi</span>
+                                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </span>
+                        </div>
+                    </a>
+
+                    <!-- LinkedIn -->
+                    <a href="https://www.linkedin.com/in/lia-kartika18" target="_blank" rel="noopener" class="tilt-card glass-panel p-5 rounded-2xl hover:border-blue-500 transition group block">
+                        <div class="tilt-inner space-y-3">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-500/15 text-blue-500 flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                                <i class="fa-brands fa-linkedin-in"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs text-slate-400 block">LinkedIn</span>
+                                <span class="font-bold text-sm sm:text-base">in/lia-kartika18</span>
+                            </div>
+                            <span class="text-xs font-semibold text-blue-500 flex items-center gap-1.5">
+                                <span data-i18n="contact_li_cta">Kunjungi Profil</span>
+                                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </span>
+                        </div>
+                    </a>
+
+                    <!-- Instagram -->
+                    <a href="https://www.instagram.com/hyeejin_08" target="_blank" rel="noopener" class="tilt-card glass-panel p-5 rounded-2xl hover:border-pink-500 transition group block">
+                        <div class="tilt-inner space-y-3">
+                            <div class="w-12 h-12 rounded-2xl bg-pink-500/15 text-pink-500 flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                                <i class="fa-brands fa-instagram"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs text-slate-400 block">Instagram</span>
+                                <span class="font-bold text-sm sm:text-base">@hyeejin_08</span>
+                            </div>
+                            <span class="text-xs font-semibold text-pink-500 flex items-center gap-1.5">
+                                <span data-i18n="contact_ig_cta">Ikuti Aktivitas</span>
+                                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </span>
+                        </div>
+                    </a>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-nav py-8 border-t border-slate-200/60 dark:border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+            <p>© 2026 <strong class="text-slate-800 dark:text-white">Lia Kartika</strong> — Universitas Subang. All rights reserved.</p>
+            <p data-i18n="footer_built">Dibangun dengan Tailwind CSS, Three.js WebGL & Desain Responsif Siap GitHub Pages.</p>
+        </div>
+    </footer>
+
+    <!-- ================= PROJECT DETAIL MODAL ================= -->
+    <div id="projectModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md">
+        <div class="glass-panel max-w-2xl w-full rounded-3xl p-6 sm:p-8 relative border border-white/20 shadow-2xl animate-fadeIn">
+            <button onclick="closeProjectModal()" class="absolute top-5 right-5 w-9 h-9 rounded-full glass-panel flex items-center justify-center hover:bg-rose-500 hover:text-white transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="space-y-4">
+                <span id="modalCategory" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-brand-500/15 text-brand-500 inline-block">Category</span>
+                <h3 id="modalTitle" class="text-2xl sm:text-3xl font-extrabold">Project Title</h3>
+                <p id="modalDescription" class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed"></p>
+                
+                <div class="pt-2">
+                    <h4 class="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2" data-i18n="modal_features_heading">Fitur & Implementasi Teknis:</h4>
+                    <ul id="modalHighlights" class="space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 list-disc list-inside"></ul>
+                </div>
+
+                <div class="pt-2">
+                    <h4 class="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2">Tech Stack:</h4>
+                    <div id="modalTech" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="pt-4 flex justify-end">
+                    <button onclick="closeProjectModal()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold transition" data-i18n="modal_close_btn">
+                        Tutup Detail
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        /* ==========================================================
+           1. THREE.JS 3D INTERACTIVE WIREFRAME & PARTICLES
+           ========================================================== */
+        const initThreeBackground = () => {
+            const container = document.getElementById('three-canvas-container');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 22;
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            // Outer Wireframe Icosahedron
+            const icoGeo = new THREE.IcosahedronGeometry(9, 1);
+            const icoMat = new THREE.MeshBasicMaterial({
+                color: 0x3b82f6,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.16
+            });
+            const wireframeMesh = new THREE.Mesh(icoGeo, icoMat);
+            scene.add(wireframeMesh);
+
+            // Inner Wireframe Torus Knot
+            const knotGeo = new THREE.TorusKnotGeometry(4.2, 1.1, 90, 14);
+            const knotMat = new THREE.MeshBasicMaterial({
+                color: 0x8b5cf6,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.11
+            });
+            const knotMesh = new THREE.Mesh(knotGeo, knotMat);
+            scene.add(knotMesh);
+
+            // Floating Particle Field
+            const particleCount = 650;
+            const positions = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount * 3; i++) {
+                positions[i] = (Math.random() - 0.5) * 55;
+            }
+            const particleGeo = new THREE.BufferGeometry();
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const particleMat = new THREE.PointsMaterial({
+                color: 0x60a5fa,
+                size: 0.08,
+                transparent: true,
+                opacity: 0.65
+            });
+            const particleSystem = new THREE.Points(particleGeo, particleMat);
+            scene.add(particleSystem);
+
+            // Smooth Cursor Tracking
+            let targetX = 0, targetY = 0;
+            let currentX = 0, currentY = 0;
+            window.addEventListener('mousemove', (e) => {
+                targetX = (e.clientX / window.innerWidth - 0.5) * 2;
+                targetY = (e.clientY / window.innerHeight - 0.5) * 2;
+            });
+
+            // Animation Loop
+            const animate = () => {
+                requestAnimationFrame(animate);
+
+                currentX += (targetX - currentX) * 0.05;
+                currentY += (targetY - currentY) * 0.05;
+
+                wireframeMesh.rotation.y += 0.002;
+                wireframeMesh.rotation.x += 0.001;
+                wireframeMesh.position.x = currentX * 1.8;
+                wireframeMesh.position.y = -currentY * 1.8;
+
+                knotMesh.rotation.x -= 0.0025;
+                knotMesh.rotation.y -= 0.0015;
+                knotMesh.position.x = -currentX * 1.1;
+                knotMesh.position.y = currentY * 1.1;
+
+                particleSystem.rotation.y += 0.0006;
+                particleSystem.rotation.x = currentY * 0.25;
+                particleSystem.rotation.z = currentX * 0.25;
+
+                renderer.render(scene, camera);
+            };
+            animate();
+
+            // Responsive Resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        };
+
+        /* ==========================================================
+           2. 3D PERSPECTIVE TILT EFFECT ON CARDS
+           ========================================================== */
+        const initTiltCards = () => {
+            const cards = document.querySelectorAll('.tilt-card');
+            cards.forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const rotateX = ((y - centerY) / centerY) * -8;
+                    const rotateY = ((x - centerX) / centerX) * 8;
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.01, 1.01, 1.01)`;
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+                });
+            });
+        };
+
+        /* ==========================================================
+           3. DARK MODE & LIGHT MODE WITH LOCALSTORAGE
+           ========================================================== */
+        const initTheme = () => {
+            const savedTheme = localStorage.getItem('lia_portfolio_theme');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+            } else {
+                document.documentElement.classList.add('dark');
+            }
+        };
+
+        const toggleTheme = () => {
+            const htmlEl = document.documentElement;
+            htmlEl.classList.toggle('dark');
+            const isDark = htmlEl.classList.contains('dark');
+            localStorage.setItem('lia_portfolio_theme', isDark ? 'dark' : 'light');
+        };
+
+        /* ==========================================================
+           4. SMART ASSET LOADER (LIVE BROWSER UPLOAD & PREVIEW)
+           ========================================================== */
+        const handleSmartAssetUpload = (event, imgElementId, badgeElementId) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imgEl = document.getElementById(imgElementId);
+                imgEl.src = e.target.result;
+                const badgeEl = document.getElementById(badgeElementId);
+                if (badgeEl) {
+                    badgeEl.textContent = currentLang === 'id' ? 'Pratinjau Aktif' : 'Live Preview';
+                }
+            };
+            reader.readAsDataURL(file);
+        };
+
+        /* ==========================================================
+           5. PROJECT FILTERING & MODAL DETAIL DATA
+           ========================================================== */
+        const projectDetailsData = {
+            simowarjo: {
+                category: "ERP • Computer Vision • Web GIS",
+                title: {
+                    id: "SIMOWARJO — Sistem ERP Restoran Terintegrasi",
+                    en: "SIMOWARJO — Integrated Restaurant ERP System"
+                },
+                desc: {
+                    id: "Sistem Enterprise Resource Planning (ERP) modern untuk digitalisasi operasional restoran yang menggabungkan manajemen inventaris/kasir berbasis Laravel dengan microservice Python FastAPI untuk presensi wajah karyawan (OpenCV) dan pemetaan geolokasi Leaflet.js.",
+                    en: "A modern Enterprise Resource Planning (ERP) system for restaurant operations combining Laravel-based POS/inventory management with a Python FastAPI microservice for employee Face Recognition (OpenCV) and Leaflet.js geolocation mapping."
+                },
+                highlights: {
+                    id: [
+                        "Presensi biometrik real-time dengan OpenCV Face Recognition melalui endpoint REST API FastAPI.",
+                        "Validasi radius kehadiran karyawan & pemetaan cabang interaktif menggunakan Leaflet.js.",
+                        "Manajemen stok bahan baku, transaksi kasir, dan laporan keuangan terpusat di Laravel & MySQL."
+                    ],
+                    en: [
+                        "Real-time biometric attendance using OpenCV Face Recognition served via FastAPI endpoints.",
+                        "Geofencing attendance validation and interactive branch mapping built with Leaflet.js.",
+                        "Centralized raw-material inventory, POS transactions, and financial reporting in Laravel & MySQL."
+                    ]
+                },
+                tech: ["Laravel", "FastAPI", "Python", "OpenCV", "Leaflet.js", "MySQL", "Tailwind CSS"]
+            },
+            codingtech: {
+                category: "EdTech • Academic Dashboard",
+                title: {
+                    id: "CODINGTECH — Platform E-Learning & Dashboard Fakultas Ilmu Komputer",
+                    en: "CODINGTECH — E-Learning Platform & Computer Science Faculty Dashboard"
+                },
+                desc: {
+                    id: "Platform pembelajaran pemrograman terpadu sekaligus dashboard analitik akademik untuk Fakultas Ilmu Komputer yang memudahkan dosen dan mahasiswa dalam distribusi materi, pengumpulan tugas koding, serta pemantauan progres belajar.",
+                    en: "An integrated programming e-learning platform and academic analytics dashboard for the Faculty of Computer Science, streamlining course distribution, coding assignment submissions, and student progress tracking."
+                },
+                highlights: {
+                    id: [
+                        "Manajemen multi-peran (Admin Fakultas, Dosen Pengampu, dan Mahasiswa).",
+                        "Dashboard visualisasi capaian belajar mahasiswa dan repositori modul interaktif.",
+                        "Desain antarmuka responsif dan cepat dengan Tailwind CSS serta struktur database MySQL teroptimasi."
+                    ],
+                    en: [
+                        "Multi-role access control (Faculty Admin, Lecturers, and Students).",
+                        "Interactive learning progress analytics dashboard and structured module repository.",
+                        "Responsive, accessible UI built with Tailwind CSS backed by an optimized MySQL schema."
+                    ]
+                },
+                tech: ["PHP", "Laravel", "Tailwind CSS", "JavaScript", "MySQL"]
+            },
+            fooduiux: {
+                category: "UI/UX Research & Design • MySkill Bootcamp",
+                title: {
+                    id: "Food Discovery Mobile UI/UX — High-Fidelity Figma",
+                    en: "Food Discovery Mobile UI/UX — High-Fidelity Figma"
+                },
+                desc: {
+                    id: "Proyek akhir intensif dari Bootcamp UI/UX Research & Design MySkill by Ruang Guru. Merancang pengalaman pencarian kuliner lokal dan rekomendasi restoran yang intuitif melalui riset pengguna mendalam hingga prototipe interaktif di Figma.",
+                    en: "Capstone project from the MySkill by Ruang Guru UI/UX Bootcamp. Designed an intuitive local culinary discovery and restaurant recommendation experience from user research to interactive Figma prototyping."
+                },
+                highlights: {
+                    id: [
+                        "Penyusunan User Persona, Customer Journey Map, dan Information Architecture.",
+                        "Pembuatan Design System lengkap (tipografi, palet warna, komponen atomik & varian di Figma).",
+                        "High-Fidelity Interactive Prototype dengan transisi mikro yang halus dan ramah pengguna."
+                    ],
+                    en: [
+                        "Developed User Personas, Customer Journey Maps, and Information Architecture.",
+                        "Crafted a scalable Design System (typography, color tokens, atomic components & Figma variants).",
+                        "Delivered a High-Fidelity Interactive Prototype with smooth micro-interactions."
+                    ]
+                },
+                tech: ["Figma", "UI/UX Research", "Wireframing", "Design System", "Prototyping"]
+            },
+            financeapp: {
+                category: "Android Native • FinTech",
+                title: {
+                    id: "Aplikasi Android Pengelolaan Keuangan",
+                    en: "Personal Finance Management Android App"
+                },
+                desc: {
+                    id: "Aplikasi mobile Android native untuk membantu pengguna mencatat pemasukan, pengeluaran, dan memantau anggaran bulanan secara real-time di awan menggunakan arsitektur modern Android.",
+                    en: "A native Android application empowering users to track daily income, expenses, and monthly budgets with real-time cloud synchronization and modern Android architecture."
+                },
+                highlights: {
+                    id: [
+                        "Antarmuka deklaratif modern dan reaktif menggunakan Jetpack Compose dengan Kotlin.",
+                        "Penerapan pola arsitektur MVVM (Model-View-ViewModel) untuk kode yang bersih dan mudah diuji.",
+                        "Penyimpanan dan sinkronisasi data transaksi real-time menggunakan Firebase Firestore."
+                    ],
+                    en: [
+                        "Modern, reactive declarative UI built entirely with Kotlin and Jetpack Compose.",
+                        "Clean MVVM (Model-View-ViewModel) architecture ensuring separation of concerns.",
+                        "Real-time cloud transaction storage and synchronization powered by Firebase Firestore."
+                    ]
+                },
+                tech: ["Kotlin", "Jetpack Compose", "MVVM Architecture", "Firebase Firestore"]
+            },
+            libraryweb: {
+                category: "School Information System",
+                title: {
+                    id: "Website Perpustakaan SMAN 2 Subang",
+                    en: "SMAN 2 Subang Digital Library Website"
+                },
+                desc: {
+                    id: "Sistem informasi manajemen perpustakaan berbasis web untuk SMAN 2 Subang yang mentransformasi proses pencatatan buku manual menjadi katalog digital yang mudah diakses oleh siswa dan staf perpustakaan.",
+                    en: "A web-based library management information system for SMAN 2 Subang transforming manual book tracking into an accessible digital catalog for students and librarians."
+                },
+                highlights: {
+                    id: [
+                        "Pencarian katalog buku online (OPAC) berdasarkan judul, penulis, dan kategori.",
+                        "Manajemen sirkulasi peminjaman, pengembalian, serta kalkulasi keterlambatan otomatis.",
+                        "Dashboard laporan inventaris buku dan keanggotaan siswa untuk pustakawan."
+                    ],
+                    en: [
+                        "Online Public Access Catalog (OPAC) search by title, author, and category.",
+                        "Automated book borrowing, return circulation, and late-fee calculation.",
+                        "Comprehensive librarian dashboard for book inventory and student membership reports."
+                    ]
+                },
+                tech: ["HTML5", "CSS3", "PHP", "Bootstrap", "JavaScript", "MySQL"]
+            }
+        };
+
+        const filterProjects = (category) => {
+            const cards = document.querySelectorAll('.project-card');
+            const buttons = document.querySelectorAll('.proj-filter-btn');
+
+            buttons.forEach(btn => {
+                if (btn.getAttribute('data-filter') === category) {
+                    btn.className = "proj-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white shadow-md shadow-brand-500/30 transition";
+                } else {
+                    btn.className = "proj-filter-btn px-4 py-2 rounded-xl text-xs font-bold glass-panel hover:border-brand-500 transition";
+                }
+            });
+
+            cards.forEach(card => {
+                const cardCat = card.getAttribute('data-category');
+                if (category === 'all' || cardCat === category) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        };
+
+        let activeModalProjectKey = null;
+
+        const openProjectModal = (projectKey) => {
+            activeModalProjectKey = projectKey;
+            const data = projectDetailsData[projectKey];
+            if (!data) return;
+
+            document.getElementById('modalCategory').textContent = data.category;
+            document.getElementById('modalTitle').textContent = data.title[currentLang];
+            document.getElementById('modalDescription').textContent = data.desc[currentLang];
+
+            const highlightsList = document.getElementById('modalHighlights');
+            highlightsList.innerHTML = data.highlights[currentLang]
+                .map(item => `<li>${item}</li>`)
+                .join('');
+
+            const techContainer = document.getElementById('modalTech');
+            techContainer.innerHTML = data.tech
+                .map(t => `<span class="px-3 py-1 rounded-lg text-xs font-mono bg-brand-500/15 text-brand-500 font-semibold">${t}</span>`)
+                .join('');
+
+            const modal = document.getElementById('projectModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        const closeProjectModal = () => {
+            const modal = document.getElementById('projectModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            activeModalProjectKey = null;
+        };
+
+        /* ==========================================================
+           6. BILINGUAL INSTANT TRANSLATOR (ID / EN)
+           ========================================================== */
+        let currentLang = localStorage.getItem('lia_portfolio_lang') || 'id';
+
+        const dictionary = {
+            id: {
+                nav_home: "Beranda",
+                nav_exp: "Peran & GSA",
+                nav_skills: "Tech Stack",
+                nav_projects: "Proyek",
+                nav_certs: "Sertifikasi",
+                nav_contact: "Kontak",
+                hero_badge: "Mahasiswa S1 Sistem Informasi Semester 7 • Universitas Subang",
+                hero_greeting: "Halo, Saya",
+                hero_bio: "Mahasiswa S1 Sistem Informasi Semester 7 di Universitas Subang dengan raihan IPK 3.90/4.00. Berfokus pada rekayasa perangkat lunak Full Stack (Laravel, FastAPI, Kotlin Jetpack Compose), perancangan antarmuka pengguna berpusat pada manusia (Figma), serta aktif menggerakkan ekosistem teknologi kampus sebagai Google Student Ambassador.",
+                stat_gpa: "IPK Kumulatif",
+                stat_projects: "Proyek Utama",
+                stat_certs: "Sertifikasi Unggul",
+                cta_explore: "Jelajahi Proyek",
+                cta_contact: "Hubungi via WhatsApp",
+                asset_profile_hint: "Aset Pintar: Klik untuk uji/ganti foto",
+                btn_upload_photo: "Unggah",
+                profile_card_sub: "Sistem Informasi • Universitas Subang",
+                exp_eyebrow: "DEDIKASI & KEPEMIMPINAN",
+                exp_title: "Pendidikan, Fokus Keahlian & Google Student Ambassador",
+                exp_subtitle: "Perpaduan prestasi akademik, keahlian rekayasa perangkat lunak, serta kontribusi komunitas teknologi bersama Google.",
+                edu_card_title: "S1 Sistem Informasi — Universitas Subang",
+                edu_sem_badge: "Semester 7 • IPK 3.90/4.00",
+                edu_card_desc: "Mendalami analisis dan perancangan sistem informasi enterprise, rekayasa perangkat lunak berbasis web & mobile, kecerdasan buatan (Computer Vision), serta manajemen basis data relasional & NoSQL.",
+                role_fs_title: "Full Stack Web Developer & UI/UX Designer",
+                role_fs_desc: "Merancang solusi digital end-to-end mulai dari User Research & High-Fidelity Prototyping di Figma, hingga pengembangan produksi menggunakan Laravel, Python FastAPI, OpenCV, Leaflet.js, dan Kotlin Jetpack Compose.",
+                role_gsa_desc: "Menjadi jembatan kolaborasi inovasi Google di lingkungan kampus, menginisiasi literasi teknologi, berbagi wawasan seputar pengembangan produk digital, dan menginspirasi mahasiswa teknologi.",
+                asset_gsa_hint: "Uji / Pratinjau Poster GSA di Browser",
+                btn_upload_poster: "Pilih File",
+                gsa_footer_note: "Otomatis memuat file lokal jika berada di direktori yang sama, atau gunakan tombol di atas untuk pratinjau instan.",
+                skills_eyebrow: "ARSENAL TEKNOLOGI",
+                skills_title: "Tech Stack & Peralatan Pengembangan",
+                skills_subtitle: "16 teknologi inti yang saya gunakan untuk membangun aplikasi web modern, aplikasi Android native, sistem visi komputer, dan desain antarmuka.",
+                proj_eyebrow: "KARYA UNGGULAN",
+                proj_title: "Showcase 5 Proyek Utama",
+                proj_subtitle: "Filter berdasarkan kategori atau klik kartu proyek untuk membaca arsitektur dan fitur lengkapnya.",
+                filter_all: "Semua (5)",
+                filter_web: "Full Stack & AI (3)",
+                filter_uiux: "UI/UX Design (1)",
+                filter_mobile: "Android Kotlin (1)",
+                p1_short: "Sistem ERP Restoran terintegrasi dengan presensi pengenalan wajah (OpenCV Face Recognition) via FastAPI dan validasi geolokasi Leaflet.js berbasis Laravel.",
+                p2_short: "Platform E-Learning interaktif dan Dashboard Manajemen Fakultas Ilmu Komputer untuk pengelolaan kelas pemrograman, modul, dan evaluasi mahasiswa.",
+                p3_short: "Desain UI/UX aplikasi mobile eksplorasi kuliner berstandar High-Fidelity di Figma dari Bootcamp MySkill, mencakup Design System, User Flow, dan Prototyping interaktif.",
+                p4_title: "Aplikasi Android Pengelolaan Keuangan",
+                p4_short: "Aplikasi Android native pencatatan arus kas harian dan anggaran dengan bahasa Kotlin, UI deklaratif Jetpack Compose, arsitektur MVVM, dan sinkronisasi real-time Firebase Firestore.",
+                p5_title: "Website Perpustakaan SMAN 2 Subang",
+                p5_short: "Sistem informasi digitalisasi perpustakaan sekolah untuk katalog buku online (OPAC), sirkulasi peminjaman/pengembalian otomatis, dan pelaporan administrasi pustakawan.",
+                btn_view_detail: "Lihat Detail Arsitektur",
+                cert_eyebrow: "LISENSI & KOMPETENSI",
+                cert_title: "Sertifikasi Profesional",
+                cert_subtitle: "Validasi kompetensi di bidang UI/UX Research & Design serta Full Stack Web Development.",
+                cert_1_desc: "Meraih predikat tertinggi (Excellent) dalam penguasaan prinsip desain antarmuka pengguna, penyusunan wireframe, dan evaluasi heuristik.",
+                cert_2_desc: "Menyelesaikan kurikulum intensif Design Thinking, User Persona, Information Architecture, Design System, dan Usability Testing di Figma.",
+                cert_3_desc: "Program akselerasi talenta digital Jawa Barat mencakup pengembangan aplikasi web modern bagian Frontend, Backend, RESTful API, dan deployment.",
+                cert_4_title: "Belajar Dasar Pemrograman JavaScript",
+                cert_4_desc: "Kompetensi fundamental algoritma, struktur data, Object-Oriented Programming (OOP), Functional Programming, dan asynchronous JavaScript.",
+                contact_eyebrow: "KOLABORASI & REKRUTMEN",
+                contact_title: "Mari Terhubung & Berdiskusi",
+                contact_subtitle: "Terbuka untuk peluang magang, kolaborasi proyek Full Stack Web / Mobile, desain UI/UX, maupun kegiatan komunitas Google Student Ambassador.",
+                contact_wa_cta: "Kirim Pesan Langsung",
+                contact_email_cta: "Kirim Surel Resmi",
+                contact_li_cta: "Kunjungi Profil",
+                contact_ig_cta: "Ikuti Aktivitas",
+                footer_built: "Dibangun dengan Tailwind CSS, Three.js WebGL & Desain Responsif Siap GitHub Pages.",
+                modal_features_heading: "Fitur & Implementasi Teknis:",
+                modal_close_btn: "Tutup Detail"
+            },
+            en: {
+                nav_home: "Home",
+                nav_exp: "Roles & GSA",
+                nav_skills: "Tech Stack",
+                nav_projects: "Projects",
+                nav_certs: "Certifications",
+                nav_contact: "Contact",
+                hero_badge: "7th Semester Information Systems Student • Universitas Subang",
+                hero_greeting: "Hello, I'm",
+                hero_bio: "7th-semester Information Systems undergraduate at Universitas Subang holding a 3.90/4.00 GPA. Focused on Full Stack Software Engineering (Laravel, FastAPI, Kotlin Jetpack Compose), human-centered UI/UX Design (Figma), and empowering campus tech communities as a Google Student Ambassador.",
+                stat_gpa: "Cumulative GPA",
+                stat_projects: "Featured Projects",
+                stat_certs: "Top Certifications",
+                cta_explore: "Explore Projects",
+                cta_contact: "Chat on WhatsApp",
+                asset_profile_hint: "Smart Asset: Click to test/replace photo",
+                btn_upload_photo: "Upload",
+                profile_card_sub: "Information Systems • Universitas Subang",
+                exp_eyebrow: "DEDICATION & LEADERSHIP",
+                exp_title: "Education, Core Roles & Google Student Ambassador",
+                exp_subtitle: "A synergy of academic excellence, full-cycle software engineering, and Google technology community leadership.",
+                edu_card_title: "B.Sc. in Information Systems — Universitas Subang",
+                edu_sem_badge: "Semester 7 • GPA 3.90/4.00",
+                edu_card_desc: "Specializing in enterprise information systems analysis, web & mobile software engineering, Computer Vision AI integration, and relational/NoSQL database management.",
+                role_fs_title: "Full Stack Web Developer & UI/UX Designer",
+                role_fs_desc: "Delivering end-to-end digital products from User Research & High-Fidelity Prototyping in Figma to production applications using Laravel, Python FastAPI, OpenCV, Leaflet.js, and Kotlin Jetpack Compose.",
+                role_gsa_desc: "Serving as the campus bridge for Google innovation, initiating tech literacy workshops, sharing product engineering insights, and inspiring fellow student developers.",
+                asset_gsa_hint: "Test / Preview GSA Poster in Browser",
+                btn_upload_poster: "Choose File",
+                gsa_footer_note: "Automatically loads the local file when placed in the same folder, or use the button above for instant browser preview.",
+                skills_eyebrow: "TECHNOLOGY ARSENAL",
+                skills_title: "Tech Stack & Development Tools",
+                skills_subtitle: "16 core technologies I use to build modern web apps, native Android apps, computer vision microservices, and intuitive user interfaces.",
+                proj_eyebrow: "FEATURED WORKS",
+                proj_title: "Showcase of 5 Key Projects",
+                proj_subtitle: "Filter by domain or click any project card to inspect its technical architecture and key features.",
+                filter_all: "All (5)",
+                filter_web: "Full Stack & AI (3)",
+                filter_uiux: "UI/UX Design (1)",
+                filter_mobile: "Android Kotlin (1)",
+                p1_short: "Integrated Restaurant ERP featuring OpenCV Face Recognition attendance via FastAPI and Leaflet.js geolocation validation built with Laravel.",
+                p2_short: "Interactive E-Learning Platform and Computer Science Faculty Dashboard for managing programming courses, modules, and student evaluations.",
+                p3_short: "High-Fidelity mobile culinary discovery UI/UX design crafted in Figma during MySkill Bootcamp, complete with Design System and interactive prototype.",
+                p4_title: "Personal Finance Management Android App",
+                p4_short: "Native Android app for daily cash-flow and budget tracking built with Kotlin, declarative Jetpack Compose UI, MVVM architecture, and real-time Firebase Firestore.",
+                p5_title: "SMAN 2 Subang Digital Library Website",
+                p5_short: "School library digitalization system providing an Online Public Access Catalog (OPAC), automated borrowing/return circulation, and administrative reporting.",
+                btn_view_detail: "View Architecture Details",
+                cert_eyebrow: "LICENSES & CREDENTIALS",
+                cert_title: "Professional Certifications",
+                cert_subtitle: "Validated competencies across UI/UX Research & Design and Full Stack Web Development.",
+                cert_1_desc: "Achieved the highest grade (Excellent) in user interface design principles, wireframing, and heuristic evaluation.",
+                cert_2_desc: "Completed intensive training in Design Thinking, User Personas, Information Architecture, Design Systems, and Usability Testing in Figma.",
+                cert_3_desc: "West Java digital talent accelerator covering modern Frontend & Backend web development, RESTful APIs, and cloud deployment.",
+                cert_4_title: "JavaScript Programming Fundamentals",
+                cert_4_desc: "Core competency in algorithms, data structures, Object-Oriented Programming (OOP), Functional Programming, and asynchronous JavaScript.",
+                contact_eyebrow: "COLLABORATION & HIRING",
+                contact_title: "Let's Connect & Collaborate",
+                contact_subtitle: "Open for internship opportunities, Full Stack Web/Mobile projects, UI/UX design collaborations, and Google Student Ambassador initiatives.",
+                contact_wa_cta: "Send Direct Message",
+                contact_email_cta: "Send Official Email",
+                contact_li_cta: "Visit Profile",
+                contact_ig_cta: "Follow Updates",
+                footer_built: "Built with Tailwind CSS, Three.js WebGL & Responsive Design Ready for GitHub Pages.",
+                modal_features_heading: "Key Features & Technical Implementation:",
+                modal_close_btn: "Close Details"
+            }
+        };
+
+        const applyLanguage = (lang) => {
+            document.documentElement.lang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dictionary[lang] && dictionary[lang][key]) {
+                    el.textContent = dictionary[lang][key];
+                }
+            });
+
+            const langLabel = document.getElementById('langLabel');
+            const langSubLabel = document.getElementById('langSubLabel');
+            if (lang === 'id') {
+                langLabel.textContent = 'ID';
+                langSubLabel.textContent = 'EN';
+            } else {
+                langLabel.textContent = 'EN';
+                langSubLabel.textContent = 'ID';
+            }
+
+            if (activeModalProjectKey) {
+                openProjectModal(activeModalProjectKey);
+            }
+        };
+
+        const toggleLanguage = () => {
+            currentLang = currentLang === 'id' ? 'en' : 'id';
+            localStorage.setItem('lia_portfolio_lang', currentLang);
+            applyLanguage(currentLang);
+        };
+
+        const toggleMobileMenu = () => {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        };
+
+        // Initialize Everything on DOM Content Loaded
+        window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            applyLanguage(currentLang);
+            initThreeBackground();
+            initTiltCards();
+        });
+    </script>
+</body>
+</html>
